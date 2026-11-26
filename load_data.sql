@@ -1,0 +1,328 @@
+-- ==============================================================================
+-- PROJECT: Medicare Claims Analysis (CMS DE-SynPUF, Sample 1)
+-- DESCRIPTION: Loads the four CMS CSV files into the synpuf tables.
+--              The CSVs are loaded as text into temp tables first, then cleaned
+--              (empty strings to NULL, YYYYMMDD text to dates) on insert.
+--              Run from the repo folder: psql -d medicare -f load_data.sql
+-- ==============================================================================
+
+
+-- ==========================================
+-- STEP 1: STAGE THE RAW CSV FILES AS TEXT
+-- ==========================================
+
+CREATE TEMP TABLE raw_beneficiary_2008 (desynpuf_id TEXT, bene_birth_dt TEXT, bene_death_dt TEXT, bene_sex_ident_cd TEXT, bene_race_cd TEXT, bene_esrd_ind TEXT, sp_state_code TEXT, bene_county_cd TEXT, bene_hi_cvrage_tot_mons TEXT, bene_smi_cvrage_tot_mons TEXT, bene_hmo_cvrage_tot_mons TEXT, plan_cvrg_mos_num TEXT, sp_alzhdmta TEXT, sp_chf TEXT, sp_chrnkidn TEXT, sp_cncr TEXT, sp_copd TEXT, sp_depressn TEXT, sp_diabetes TEXT, sp_ischmcht TEXT, sp_osteoprs TEXT, sp_ra_oa TEXT, sp_strketia TEXT, medreimb_ip TEXT, benres_ip TEXT, pppymt_ip TEXT, medreimb_op TEXT, benres_op TEXT, pppymt_op TEXT, medreimb_car TEXT, benres_car TEXT, pppymt_car TEXT);
+\copy raw_beneficiary_2008 FROM 'data/DE1_0_2008_Beneficiary_Summary_File_Sample_1.csv' WITH (FORMAT CSV, HEADER TRUE)
+CREATE TEMP TABLE raw_beneficiary_2009 (desynpuf_id TEXT, bene_birth_dt TEXT, bene_death_dt TEXT, bene_sex_ident_cd TEXT, bene_race_cd TEXT, bene_esrd_ind TEXT, sp_state_code TEXT, bene_county_cd TEXT, bene_hi_cvrage_tot_mons TEXT, bene_smi_cvrage_tot_mons TEXT, bene_hmo_cvrage_tot_mons TEXT, plan_cvrg_mos_num TEXT, sp_alzhdmta TEXT, sp_chf TEXT, sp_chrnkidn TEXT, sp_cncr TEXT, sp_copd TEXT, sp_depressn TEXT, sp_diabetes TEXT, sp_ischmcht TEXT, sp_osteoprs TEXT, sp_ra_oa TEXT, sp_strketia TEXT, medreimb_ip TEXT, benres_ip TEXT, pppymt_ip TEXT, medreimb_op TEXT, benres_op TEXT, pppymt_op TEXT, medreimb_car TEXT, benres_car TEXT, pppymt_car TEXT);
+\copy raw_beneficiary_2009 FROM 'data/DE1_0_2009_Beneficiary_Summary_File_Sample_1.csv' WITH (FORMAT CSV, HEADER TRUE)
+CREATE TEMP TABLE raw_inpatient_claims (desynpuf_id TEXT, clm_id TEXT, segment TEXT, clm_from_dt TEXT, clm_thru_dt TEXT, prvdr_num TEXT, clm_pmt_amt TEXT, nch_prmry_pyr_clm_pd_amt TEXT, at_physn_npi TEXT, op_physn_npi TEXT, ot_physn_npi TEXT, clm_admsn_dt TEXT, admtng_icd9_dgns_cd TEXT, clm_pass_thru_per_diem_amt TEXT, nch_bene_ip_ddctbl_amt TEXT, nch_bene_pta_coinsrnc_lblty_am TEXT, nch_bene_blood_ddctbl_lblty_am TEXT, clm_utlztn_day_cnt TEXT, nch_bene_dschrg_dt TEXT, clm_drg_cd TEXT, icd9_dgns_cd_1 TEXT, icd9_dgns_cd_2 TEXT, icd9_dgns_cd_3 TEXT, icd9_dgns_cd_4 TEXT, icd9_dgns_cd_5 TEXT, icd9_dgns_cd_6 TEXT, icd9_dgns_cd_7 TEXT, icd9_dgns_cd_8 TEXT, icd9_dgns_cd_9 TEXT, icd9_dgns_cd_10 TEXT, icd9_prcdr_cd_1 TEXT, icd9_prcdr_cd_2 TEXT, icd9_prcdr_cd_3 TEXT, icd9_prcdr_cd_4 TEXT, icd9_prcdr_cd_5 TEXT, icd9_prcdr_cd_6 TEXT, hcpcs_cd_1 TEXT, hcpcs_cd_2 TEXT, hcpcs_cd_3 TEXT, hcpcs_cd_4 TEXT, hcpcs_cd_5 TEXT, hcpcs_cd_6 TEXT, hcpcs_cd_7 TEXT, hcpcs_cd_8 TEXT, hcpcs_cd_9 TEXT, hcpcs_cd_10 TEXT, hcpcs_cd_11 TEXT, hcpcs_cd_12 TEXT, hcpcs_cd_13 TEXT, hcpcs_cd_14 TEXT, hcpcs_cd_15 TEXT, hcpcs_cd_16 TEXT, hcpcs_cd_17 TEXT, hcpcs_cd_18 TEXT, hcpcs_cd_19 TEXT, hcpcs_cd_20 TEXT, hcpcs_cd_21 TEXT, hcpcs_cd_22 TEXT, hcpcs_cd_23 TEXT, hcpcs_cd_24 TEXT, hcpcs_cd_25 TEXT, hcpcs_cd_26 TEXT, hcpcs_cd_27 TEXT, hcpcs_cd_28 TEXT, hcpcs_cd_29 TEXT, hcpcs_cd_30 TEXT, hcpcs_cd_31 TEXT, hcpcs_cd_32 TEXT, hcpcs_cd_33 TEXT, hcpcs_cd_34 TEXT, hcpcs_cd_35 TEXT, hcpcs_cd_36 TEXT, hcpcs_cd_37 TEXT, hcpcs_cd_38 TEXT, hcpcs_cd_39 TEXT, hcpcs_cd_40 TEXT, hcpcs_cd_41 TEXT, hcpcs_cd_42 TEXT, hcpcs_cd_43 TEXT, hcpcs_cd_44 TEXT, hcpcs_cd_45 TEXT);
+\copy raw_inpatient_claims FROM 'data/DE1_0_2008_to_2010_Inpatient_Claims_Sample_1.csv' WITH (FORMAT CSV, HEADER TRUE)
+CREATE TEMP TABLE raw_outpatient_claims (desynpuf_id TEXT, clm_id TEXT, segment TEXT, clm_from_dt TEXT, clm_thru_dt TEXT, prvdr_num TEXT, clm_pmt_amt TEXT, nch_prmry_pyr_clm_pd_amt TEXT, at_physn_npi TEXT, op_physn_npi TEXT, ot_physn_npi TEXT, nch_bene_blood_ddctbl_lblty_am TEXT, icd9_dgns_cd_1 TEXT, icd9_dgns_cd_2 TEXT, icd9_dgns_cd_3 TEXT, icd9_dgns_cd_4 TEXT, icd9_dgns_cd_5 TEXT, icd9_dgns_cd_6 TEXT, icd9_dgns_cd_7 TEXT, icd9_dgns_cd_8 TEXT, icd9_dgns_cd_9 TEXT, icd9_dgns_cd_10 TEXT, icd9_prcdr_cd_1 TEXT, icd9_prcdr_cd_2 TEXT, icd9_prcdr_cd_3 TEXT, icd9_prcdr_cd_4 TEXT, icd9_prcdr_cd_5 TEXT, icd9_prcdr_cd_6 TEXT, nch_bene_ptb_ddctbl_amt TEXT, nch_bene_ptb_coinsrnc_amt TEXT, admtng_icd9_dgns_cd TEXT, hcpcs_cd_1 TEXT, hcpcs_cd_2 TEXT, hcpcs_cd_3 TEXT, hcpcs_cd_4 TEXT, hcpcs_cd_5 TEXT, hcpcs_cd_6 TEXT, hcpcs_cd_7 TEXT, hcpcs_cd_8 TEXT, hcpcs_cd_9 TEXT, hcpcs_cd_10 TEXT, hcpcs_cd_11 TEXT, hcpcs_cd_12 TEXT, hcpcs_cd_13 TEXT, hcpcs_cd_14 TEXT, hcpcs_cd_15 TEXT, hcpcs_cd_16 TEXT, hcpcs_cd_17 TEXT, hcpcs_cd_18 TEXT, hcpcs_cd_19 TEXT, hcpcs_cd_20 TEXT, hcpcs_cd_21 TEXT, hcpcs_cd_22 TEXT, hcpcs_cd_23 TEXT, hcpcs_cd_24 TEXT, hcpcs_cd_25 TEXT, hcpcs_cd_26 TEXT, hcpcs_cd_27 TEXT, hcpcs_cd_28 TEXT, hcpcs_cd_29 TEXT, hcpcs_cd_30 TEXT, hcpcs_cd_31 TEXT, hcpcs_cd_32 TEXT, hcpcs_cd_33 TEXT, hcpcs_cd_34 TEXT, hcpcs_cd_35 TEXT, hcpcs_cd_36 TEXT, hcpcs_cd_37 TEXT, hcpcs_cd_38 TEXT, hcpcs_cd_39 TEXT, hcpcs_cd_40 TEXT, hcpcs_cd_41 TEXT, hcpcs_cd_42 TEXT, hcpcs_cd_43 TEXT, hcpcs_cd_44 TEXT, hcpcs_cd_45 TEXT);
+\copy raw_outpatient_claims FROM 'data/DE1_0_2008_to_2010_Outpatient_Claims_Sample_1.csv' WITH (FORMAT CSV, HEADER TRUE)
+
+
+-- ==========================================
+-- STEP 2: STATE CODE LOOKUP
+-- ==========================================
+
+INSERT INTO synpuf.states VALUES
+    ('01', 'AL'),
+    ('02', 'AK'),
+    ('03', 'AZ'),
+    ('04', 'AR'),
+    ('05', 'CA'),
+    ('06', 'CO'),
+    ('07', 'CT'),
+    ('08', 'DE'),
+    ('09', 'DC'),
+    ('10', 'FL'),
+    ('11', 'GA'),
+    ('12', 'HI'),
+    ('13', 'ID'),
+    ('14', 'IL'),
+    ('15', 'IN'),
+    ('16', 'IA'),
+    ('17', 'KS'),
+    ('18', 'KY'),
+    ('19', 'LA'),
+    ('20', 'ME'),
+    ('21', 'MD'),
+    ('22', 'MA'),
+    ('23', 'MI'),
+    ('24', 'MN'),
+    ('25', 'MS'),
+    ('26', 'MO'),
+    ('27', 'MT'),
+    ('28', 'NE'),
+    ('29', 'NV'),
+    ('30', 'NH'),
+    ('31', 'NJ'),
+    ('32', 'NM'),
+    ('33', 'NY'),
+    ('34', 'NC'),
+    ('35', 'ND'),
+    ('36', 'OH'),
+    ('37', 'OK'),
+    ('38', 'OR'),
+    ('39', 'PA'),
+    ('41', 'RI'),
+    ('42', 'SC'),
+    ('43', 'SD'),
+    ('44', 'TN'),
+    ('45', 'TX'),
+    ('46', 'UT'),
+    ('47', 'VT'),
+    ('49', 'VA'),
+    ('50', 'WA'),
+    ('51', 'WV'),
+    ('52', 'WI'),
+    ('53', 'WY'),
+    ('54', 'Other');
+
+
+-- ==========================================
+-- STEP 3: ONE ROW PER PERSON (latest demographics)
+-- ==========================================
+
+INSERT INTO synpuf.beneficiary
+SELECT i.desynpuf_id,
+       TO_DATE(COALESCE(b9.bene_birth_dt, b8.bene_birth_dt), 'YYYYMMDD'),
+       TO_DATE(NULLIF(COALESCE(b9.bene_death_dt, b8.bene_death_dt), ''), 'YYYYMMDD'),
+       COALESCE(b9.bene_sex_ident_cd, b8.bene_sex_ident_cd),
+       COALESCE(b9.bene_race_cd, b8.bene_race_cd)
+FROM (SELECT desynpuf_id FROM raw_beneficiary_2008 UNION SELECT desynpuf_id FROM raw_beneficiary_2009
+      UNION SELECT desynpuf_id FROM raw_inpatient_claims UNION SELECT desynpuf_id FROM raw_outpatient_claims) i
+LEFT JOIN raw_beneficiary_2008 b8 USING (desynpuf_id)
+LEFT JOIN raw_beneficiary_2009 b9 USING (desynpuf_id);
+
+
+-- ==========================================
+-- STEP 4: YEARLY SUMMARIES AND CLAIMS (typed)
+-- ==========================================
+
+INSERT INTO synpuf.beneficiary_2008 (desynpuf_id, bene_esrd_ind, sp_state_code, bene_county_cd, bene_hi_cvrage_tot_mons, bene_smi_cvrage_tot_mons, bene_hmo_cvrage_tot_mons, plan_cvrg_mos_num, sp_alzhdmta, sp_chf, sp_chrnkidn, sp_cncr, sp_copd, sp_depressn, sp_diabetes, sp_ischmcht, sp_osteoprs, sp_ra_oa, sp_strketia, medreimb_ip, benres_ip, pppymt_ip, medreimb_op, benres_op, pppymt_op, medreimb_car, benres_car, pppymt_car)
+SELECT NULLIF(desynpuf_id, ''),
+       NULLIF(bene_esrd_ind, ''),
+       NULLIF(sp_state_code, ''),
+       NULLIF(bene_county_cd, ''),
+       NULLIF(bene_hi_cvrage_tot_mons, '')::BIGINT,
+       NULLIF(bene_smi_cvrage_tot_mons, '')::BIGINT,
+       NULLIF(bene_hmo_cvrage_tot_mons, '')::BIGINT,
+       NULLIF(plan_cvrg_mos_num, '')::BIGINT,
+       NULLIF(sp_alzhdmta, '')::BIGINT,
+       NULLIF(sp_chf, '')::BIGINT,
+       NULLIF(sp_chrnkidn, '')::BIGINT,
+       NULLIF(sp_cncr, '')::BIGINT,
+       NULLIF(sp_copd, '')::BIGINT,
+       NULLIF(sp_depressn, '')::BIGINT,
+       NULLIF(sp_diabetes, '')::BIGINT,
+       NULLIF(sp_ischmcht, '')::BIGINT,
+       NULLIF(sp_osteoprs, '')::BIGINT,
+       NULLIF(sp_ra_oa, '')::BIGINT,
+       NULLIF(sp_strketia, '')::BIGINT,
+       NULLIF(medreimb_ip, '')::NUMERIC,
+       NULLIF(benres_ip, '')::NUMERIC,
+       NULLIF(pppymt_ip, '')::NUMERIC,
+       NULLIF(medreimb_op, '')::NUMERIC,
+       NULLIF(benres_op, '')::NUMERIC,
+       NULLIF(pppymt_op, '')::NUMERIC,
+       NULLIF(medreimb_car, '')::NUMERIC,
+       NULLIF(benres_car, '')::NUMERIC,
+       NULLIF(pppymt_car, '')::NUMERIC
+FROM raw_beneficiary_2008;
+
+INSERT INTO synpuf.beneficiary_2009 (desynpuf_id, bene_esrd_ind, sp_state_code, bene_county_cd, bene_hi_cvrage_tot_mons, bene_smi_cvrage_tot_mons, bene_hmo_cvrage_tot_mons, plan_cvrg_mos_num, sp_alzhdmta, sp_chf, sp_chrnkidn, sp_cncr, sp_copd, sp_depressn, sp_diabetes, sp_ischmcht, sp_osteoprs, sp_ra_oa, sp_strketia, medreimb_ip, benres_ip, pppymt_ip, medreimb_op, benres_op, pppymt_op, medreimb_car, benres_car, pppymt_car)
+SELECT NULLIF(desynpuf_id, ''),
+       NULLIF(bene_esrd_ind, ''),
+       NULLIF(sp_state_code, ''),
+       NULLIF(bene_county_cd, ''),
+       NULLIF(bene_hi_cvrage_tot_mons, '')::BIGINT,
+       NULLIF(bene_smi_cvrage_tot_mons, '')::BIGINT,
+       NULLIF(bene_hmo_cvrage_tot_mons, '')::BIGINT,
+       NULLIF(plan_cvrg_mos_num, '')::BIGINT,
+       NULLIF(sp_alzhdmta, '')::BIGINT,
+       NULLIF(sp_chf, '')::BIGINT,
+       NULLIF(sp_chrnkidn, '')::BIGINT,
+       NULLIF(sp_cncr, '')::BIGINT,
+       NULLIF(sp_copd, '')::BIGINT,
+       NULLIF(sp_depressn, '')::BIGINT,
+       NULLIF(sp_diabetes, '')::BIGINT,
+       NULLIF(sp_ischmcht, '')::BIGINT,
+       NULLIF(sp_osteoprs, '')::BIGINT,
+       NULLIF(sp_ra_oa, '')::BIGINT,
+       NULLIF(sp_strketia, '')::BIGINT,
+       NULLIF(medreimb_ip, '')::NUMERIC,
+       NULLIF(benres_ip, '')::NUMERIC,
+       NULLIF(pppymt_ip, '')::NUMERIC,
+       NULLIF(medreimb_op, '')::NUMERIC,
+       NULLIF(benres_op, '')::NUMERIC,
+       NULLIF(pppymt_op, '')::NUMERIC,
+       NULLIF(medreimb_car, '')::NUMERIC,
+       NULLIF(benres_car, '')::NUMERIC,
+       NULLIF(pppymt_car, '')::NUMERIC
+FROM raw_beneficiary_2009;
+
+INSERT INTO synpuf.inpatient_claims (desynpuf_id, clm_id, segment, clm_from_dt, clm_thru_dt, prvdr_num, clm_pmt_amt, nch_prmry_pyr_clm_pd_amt, at_physn_npi, op_physn_npi, ot_physn_npi, clm_admsn_dt, admtng_icd9_dgns_cd, clm_pass_thru_per_diem_amt, nch_bene_ip_ddctbl_amt, nch_bene_pta_coinsrnc_lblty_am, nch_bene_blood_ddctbl_lblty_am, clm_utlztn_day_cnt, nch_bene_dschrg_dt, clm_drg_cd, icd9_dgns_cd_1, icd9_dgns_cd_2, icd9_dgns_cd_3, icd9_dgns_cd_4, icd9_dgns_cd_5, icd9_dgns_cd_6, icd9_dgns_cd_7, icd9_dgns_cd_8, icd9_dgns_cd_9, icd9_dgns_cd_10, icd9_prcdr_cd_1, icd9_prcdr_cd_2, icd9_prcdr_cd_3, icd9_prcdr_cd_4, icd9_prcdr_cd_5, icd9_prcdr_cd_6, hcpcs_cd_1, hcpcs_cd_2, hcpcs_cd_3, hcpcs_cd_4, hcpcs_cd_5, hcpcs_cd_6, hcpcs_cd_7, hcpcs_cd_8, hcpcs_cd_9, hcpcs_cd_10, hcpcs_cd_11, hcpcs_cd_12, hcpcs_cd_13, hcpcs_cd_14, hcpcs_cd_15, hcpcs_cd_16, hcpcs_cd_17, hcpcs_cd_18, hcpcs_cd_19, hcpcs_cd_20, hcpcs_cd_21, hcpcs_cd_22, hcpcs_cd_23, hcpcs_cd_24, hcpcs_cd_25, hcpcs_cd_26, hcpcs_cd_27, hcpcs_cd_28, hcpcs_cd_29, hcpcs_cd_30, hcpcs_cd_31, hcpcs_cd_32, hcpcs_cd_33, hcpcs_cd_34, hcpcs_cd_35, hcpcs_cd_36, hcpcs_cd_37, hcpcs_cd_38, hcpcs_cd_39, hcpcs_cd_40, hcpcs_cd_41, hcpcs_cd_42, hcpcs_cd_43, hcpcs_cd_44, hcpcs_cd_45)
+SELECT NULLIF(desynpuf_id, ''),
+       NULLIF(clm_id, ''),
+       NULLIF(segment, ''),
+       TO_DATE(NULLIF(clm_from_dt, ''), 'YYYYMMDD'),
+       TO_DATE(NULLIF(clm_thru_dt, ''), 'YYYYMMDD'),
+       NULLIF(prvdr_num, ''),
+       NULLIF(clm_pmt_amt, '')::NUMERIC,
+       NULLIF(nch_prmry_pyr_clm_pd_amt, '')::NUMERIC,
+       NULLIF(at_physn_npi, ''),
+       NULLIF(op_physn_npi, ''),
+       NULLIF(ot_physn_npi, ''),
+       TO_DATE(NULLIF(clm_admsn_dt, ''), 'YYYYMMDD'),
+       NULLIF(admtng_icd9_dgns_cd, ''),
+       NULLIF(clm_pass_thru_per_diem_amt, '')::NUMERIC,
+       NULLIF(nch_bene_ip_ddctbl_amt, '')::NUMERIC,
+       NULLIF(nch_bene_pta_coinsrnc_lblty_am, '')::NUMERIC,
+       NULLIF(nch_bene_blood_ddctbl_lblty_am, '')::NUMERIC,
+       NULLIF(clm_utlztn_day_cnt, '')::BIGINT,
+       TO_DATE(NULLIF(nch_bene_dschrg_dt, ''), 'YYYYMMDD'),
+       NULLIF(clm_drg_cd, ''),
+       NULLIF(icd9_dgns_cd_1, ''),
+       NULLIF(icd9_dgns_cd_2, ''),
+       NULLIF(icd9_dgns_cd_3, ''),
+       NULLIF(icd9_dgns_cd_4, ''),
+       NULLIF(icd9_dgns_cd_5, ''),
+       NULLIF(icd9_dgns_cd_6, ''),
+       NULLIF(icd9_dgns_cd_7, ''),
+       NULLIF(icd9_dgns_cd_8, ''),
+       NULLIF(icd9_dgns_cd_9, ''),
+       NULLIF(icd9_dgns_cd_10, ''),
+       NULLIF(icd9_prcdr_cd_1, ''),
+       NULLIF(icd9_prcdr_cd_2, ''),
+       NULLIF(icd9_prcdr_cd_3, ''),
+       NULLIF(icd9_prcdr_cd_4, ''),
+       NULLIF(icd9_prcdr_cd_5, ''),
+       NULLIF(icd9_prcdr_cd_6, ''),
+       NULLIF(hcpcs_cd_1, ''),
+       NULLIF(hcpcs_cd_2, ''),
+       NULLIF(hcpcs_cd_3, ''),
+       NULLIF(hcpcs_cd_4, ''),
+       NULLIF(hcpcs_cd_5, ''),
+       NULLIF(hcpcs_cd_6, ''),
+       NULLIF(hcpcs_cd_7, ''),
+       NULLIF(hcpcs_cd_8, ''),
+       NULLIF(hcpcs_cd_9, ''),
+       NULLIF(hcpcs_cd_10, ''),
+       NULLIF(hcpcs_cd_11, ''),
+       NULLIF(hcpcs_cd_12, ''),
+       NULLIF(hcpcs_cd_13, ''),
+       NULLIF(hcpcs_cd_14, ''),
+       NULLIF(hcpcs_cd_15, ''),
+       NULLIF(hcpcs_cd_16, ''),
+       NULLIF(hcpcs_cd_17, ''),
+       NULLIF(hcpcs_cd_18, ''),
+       NULLIF(hcpcs_cd_19, ''),
+       NULLIF(hcpcs_cd_20, ''),
+       NULLIF(hcpcs_cd_21, ''),
+       NULLIF(hcpcs_cd_22, ''),
+       NULLIF(hcpcs_cd_23, ''),
+       NULLIF(hcpcs_cd_24, ''),
+       NULLIF(hcpcs_cd_25, ''),
+       NULLIF(hcpcs_cd_26, ''),
+       NULLIF(hcpcs_cd_27, ''),
+       NULLIF(hcpcs_cd_28, ''),
+       NULLIF(hcpcs_cd_29, ''),
+       NULLIF(hcpcs_cd_30, ''),
+       NULLIF(hcpcs_cd_31, ''),
+       NULLIF(hcpcs_cd_32, ''),
+       NULLIF(hcpcs_cd_33, ''),
+       NULLIF(hcpcs_cd_34, ''),
+       NULLIF(hcpcs_cd_35, ''),
+       NULLIF(hcpcs_cd_36, ''),
+       NULLIF(hcpcs_cd_37, ''),
+       NULLIF(hcpcs_cd_38, ''),
+       NULLIF(hcpcs_cd_39, ''),
+       NULLIF(hcpcs_cd_40, ''),
+       NULLIF(hcpcs_cd_41, ''),
+       NULLIF(hcpcs_cd_42, ''),
+       NULLIF(hcpcs_cd_43, ''),
+       NULLIF(hcpcs_cd_44, ''),
+       NULLIF(hcpcs_cd_45, '')
+FROM raw_inpatient_claims;
+
+INSERT INTO synpuf.outpatient_claims (desynpuf_id, clm_id, segment, clm_from_dt, clm_thru_dt, prvdr_num, clm_pmt_amt, nch_prmry_pyr_clm_pd_amt, at_physn_npi, op_physn_npi, ot_physn_npi, nch_bene_blood_ddctbl_lblty_am, icd9_dgns_cd_1, icd9_dgns_cd_2, icd9_dgns_cd_3, icd9_dgns_cd_4, icd9_dgns_cd_5, icd9_dgns_cd_6, icd9_dgns_cd_7, icd9_dgns_cd_8, icd9_dgns_cd_9, icd9_dgns_cd_10, icd9_prcdr_cd_1, icd9_prcdr_cd_2, icd9_prcdr_cd_3, icd9_prcdr_cd_4, icd9_prcdr_cd_5, icd9_prcdr_cd_6, nch_bene_ptb_ddctbl_amt, nch_bene_ptb_coinsrnc_amt, admtng_icd9_dgns_cd, hcpcs_cd_1, hcpcs_cd_2, hcpcs_cd_3, hcpcs_cd_4, hcpcs_cd_5, hcpcs_cd_6, hcpcs_cd_7, hcpcs_cd_8, hcpcs_cd_9, hcpcs_cd_10, hcpcs_cd_11, hcpcs_cd_12, hcpcs_cd_13, hcpcs_cd_14, hcpcs_cd_15, hcpcs_cd_16, hcpcs_cd_17, hcpcs_cd_18, hcpcs_cd_19, hcpcs_cd_20, hcpcs_cd_21, hcpcs_cd_22, hcpcs_cd_23, hcpcs_cd_24, hcpcs_cd_25, hcpcs_cd_26, hcpcs_cd_27, hcpcs_cd_28, hcpcs_cd_29, hcpcs_cd_30, hcpcs_cd_31, hcpcs_cd_32, hcpcs_cd_33, hcpcs_cd_34, hcpcs_cd_35, hcpcs_cd_36, hcpcs_cd_37, hcpcs_cd_38, hcpcs_cd_39, hcpcs_cd_40, hcpcs_cd_41, hcpcs_cd_42, hcpcs_cd_43, hcpcs_cd_44, hcpcs_cd_45)
+SELECT NULLIF(desynpuf_id, ''),
+       NULLIF(clm_id, ''),
+       NULLIF(segment, ''),
+       TO_DATE(NULLIF(clm_from_dt, ''), 'YYYYMMDD'),
+       TO_DATE(NULLIF(clm_thru_dt, ''), 'YYYYMMDD'),
+       NULLIF(prvdr_num, ''),
+       NULLIF(clm_pmt_amt, '')::NUMERIC,
+       NULLIF(nch_prmry_pyr_clm_pd_amt, '')::NUMERIC,
+       NULLIF(at_physn_npi, ''),
+       NULLIF(op_physn_npi, ''),
+       NULLIF(ot_physn_npi, ''),
+       NULLIF(nch_bene_blood_ddctbl_lblty_am, '')::NUMERIC,
+       NULLIF(icd9_dgns_cd_1, ''),
+       NULLIF(icd9_dgns_cd_2, ''),
+       NULLIF(icd9_dgns_cd_3, ''),
+       NULLIF(icd9_dgns_cd_4, ''),
+       NULLIF(icd9_dgns_cd_5, ''),
+       NULLIF(icd9_dgns_cd_6, ''),
+       NULLIF(icd9_dgns_cd_7, ''),
+       NULLIF(icd9_dgns_cd_8, ''),
+       NULLIF(icd9_dgns_cd_9, ''),
+       NULLIF(icd9_dgns_cd_10, ''),
+       NULLIF(icd9_prcdr_cd_1, ''),
+       NULLIF(icd9_prcdr_cd_2, ''),
+       NULLIF(icd9_prcdr_cd_3, ''),
+       NULLIF(icd9_prcdr_cd_4, ''),
+       NULLIF(icd9_prcdr_cd_5, ''),
+       NULLIF(icd9_prcdr_cd_6, ''),
+       NULLIF(nch_bene_ptb_ddctbl_amt, '')::NUMERIC,
+       NULLIF(nch_bene_ptb_coinsrnc_amt, '')::NUMERIC,
+       NULLIF(admtng_icd9_dgns_cd, ''),
+       NULLIF(hcpcs_cd_1, ''),
+       NULLIF(hcpcs_cd_2, ''),
+       NULLIF(hcpcs_cd_3, ''),
+       NULLIF(hcpcs_cd_4, ''),
+       NULLIF(hcpcs_cd_5, ''),
+       NULLIF(hcpcs_cd_6, ''),
+       NULLIF(hcpcs_cd_7, ''),
+       NULLIF(hcpcs_cd_8, ''),
+       NULLIF(hcpcs_cd_9, ''),
+       NULLIF(hcpcs_cd_10, ''),
+       NULLIF(hcpcs_cd_11, ''),
+       NULLIF(hcpcs_cd_12, ''),
+       NULLIF(hcpcs_cd_13, ''),
+       NULLIF(hcpcs_cd_14, ''),
+       NULLIF(hcpcs_cd_15, ''),
+       NULLIF(hcpcs_cd_16, ''),
+       NULLIF(hcpcs_cd_17, ''),
+       NULLIF(hcpcs_cd_18, ''),
+       NULLIF(hcpcs_cd_19, ''),
+       NULLIF(hcpcs_cd_20, ''),
+       NULLIF(hcpcs_cd_21, ''),
+       NULLIF(hcpcs_cd_22, ''),
+       NULLIF(hcpcs_cd_23, ''),
+       NULLIF(hcpcs_cd_24, ''),
+       NULLIF(hcpcs_cd_25, ''),
+       NULLIF(hcpcs_cd_26, ''),
+       NULLIF(hcpcs_cd_27, ''),
+       NULLIF(hcpcs_cd_28, ''),
+       NULLIF(hcpcs_cd_29, ''),
+       NULLIF(hcpcs_cd_30, ''),
+       NULLIF(hcpcs_cd_31, ''),
+       NULLIF(hcpcs_cd_32, ''),
+       NULLIF(hcpcs_cd_33, ''),
+       NULLIF(hcpcs_cd_34, ''),
+       NULLIF(hcpcs_cd_35, ''),
+       NULLIF(hcpcs_cd_36, ''),
+       NULLIF(hcpcs_cd_37, ''),
+       NULLIF(hcpcs_cd_38, ''),
+       NULLIF(hcpcs_cd_39, ''),
+       NULLIF(hcpcs_cd_40, ''),
+       NULLIF(hcpcs_cd_41, ''),
+       NULLIF(hcpcs_cd_42, ''),
+       NULLIF(hcpcs_cd_43, ''),
+       NULLIF(hcpcs_cd_44, ''),
+       NULLIF(hcpcs_cd_45, '')
+FROM raw_outpatient_claims;
+
+ANALYZE;
